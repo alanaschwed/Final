@@ -122,11 +122,11 @@ public class ForestSimulation {
             System.out.print("Tree number to cut down: ");
             try {
                 int index = Integer.parseInt(keyboard.nextLine().trim());
-                if ( index < 0|| index >= currentForest.trees.size()) {
+                if (index < 0 || index >= currentForest.trees.size()) {
                     System.out.println("Tree number " + index + " does not exist");
-                    return;
                 } else {
                     currentForest.cutDownTree(index);
+                    break;
                 }
             } catch (NumberFormatException e) {
                 System.out.println("That is not an integer");
