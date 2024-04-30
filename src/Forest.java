@@ -25,6 +25,15 @@ class Forest implements Serializable {
     }
 
     /**
+     * This method returns the current name of the forest instance.
+     * @return the name of the forest as a {@code String}
+     */
+    public String getName() {
+        return this.name; // Return the name of the forest
+    }
+
+
+    /**
      * Provides a string representation of the forest, including all trees.
      * @return A string detailing the forest name, each tree, and the average height of the trees.
      */

@@ -6,7 +6,7 @@ import java.util.*;
  * It allows for various operations including adding, cutting down, and saving trees.
  */
 public class ForestSimulation {
-    private static Map<String, Forest> forests = new HashMap<>();
+    private static ArrayList<Forest> forests = new ArrayList<>();
     private static Forest currentForest;
     private static Scanner keyboard = new Scanner(System.in);
     private static final int MIN_HEIGHT_TO_PLANT = 10;
@@ -77,24 +77,23 @@ public class ForestSimulation {
     private static void loadForests(String[] forestNames) {
         boolean montaneInitialized = false;
         for (String name : forestNames) {
+            Forest forest = new Forest(name);
             try {
                 Scanner fileScanner = new Scanner(new File(name + ".csv"));
-                Forest forest = new Forest(name);
                 while (fileScanner.hasNextLine()) {
                     String[] data = fileScanner.nextLine().split(",");
                     Tree tree = new Tree(data[0], Integer.parseInt(data[1].trim()),
                             Double.parseDouble(data[2].trim()), Double.parseDouble(data[3].trim()));
                     forest.addTree(tree);
                 }
-                forests.put(name, forest);
                 if (name.equals("Montane") && !montaneInitialized) {
                     currentForest = forest; // Set Montane as the current forest only if it hasn't been initialized yet
                     System.out.println("Initializing from " + name);
                     montaneInitialized = true;
                 }
             } catch (FileNotFoundException e) {
-                System.out.println("Error opening/reading " + name + ".csv");
             }
+            forests.add(forest);
         }
         if (!montaneInitialized) {
             System.out.println("Montane forest not found among provided names.");
@@ -124,6 +123,7 @@ public class ForestSimulation {
                 int index = Integer.parseInt(keyboard.nextLine().trim());
                 if (index < 0 || index >= currentForest.trees.size()) {
                     System.out.println("Tree number " + index + " does not exist");
+                    break;
                 } else {
                     currentForest.cutDownTree(index);
                     break;
@@ -173,8 +173,9 @@ public class ForestSimulation {
             currentForest = Forest.loadFromFile(name + ".db");
             System.out.println("Forest loaded: " + name);
         } catch (IOException | ClassNotFoundException e) {
-            System.out.println("Error loading forest from file: " + e.getMessage());
-            e.printStackTrace();
+            System.out.println("Error opening/reading " + e.getMessage());
+            System.out.println("Old Forest retained");
+
         }
     }
 
@@ -182,19 +183,43 @@ public class ForestSimulation {
      * Moves to the next forest in the array if available.
      * @param forestNames An array of forest names used to determine the sequence of forests.
      */
+
     private static void nextForest(String[] forestNames) {
         boolean found = false;
+        int currentIndex = -1;
         for (int i = 0; i < forestNames.length; i++) {
-            if (forestNames[i].equals(currentForest.name) && i + 1 < forestNames.length) {
-                currentForest = forests.get(forestNames[i + 1]);
-                System.out.println("Moving to the next forest");
-                System.out.println("Initializing from " + currentForest.name);
-                found = true;
+            if (forestNames[i].equals(currentForest.getName())) {
+                currentIndex = i;
                 break;
             }
         }
+
+        if (currentIndex != -1 && currentIndex + 1 < forestNames.length) {
+            for (int j = currentIndex + 1; j < forestNames.length; j++) {
+                String nextForestName = forestNames[j];
+                System.out.println("Moving to the next forest");
+                System.out.println("Initializing from " + nextForestName);
+                try {
+                    Scanner fileScanner = new Scanner(new File(nextForestName + ".csv"));
+                    Forest forest = new Forest(nextForestName);
+                    while (fileScanner.hasNextLine()) {
+                        String[] data = fileScanner.nextLine().split(",");
+                        Tree tree = new Tree(data[0], Integer.parseInt(data[1].trim()),
+                                Double.parseDouble(data[2].trim()), Double.parseDouble(data[3].trim()));
+                        forest.addTree(tree);
+                    }
+                    currentForest = forest;
+                    found = true;
+                    break; // Break if successfully loaded the forest
+                } catch (FileNotFoundException e) {
+                    System.out.println("Error opening/reading " + nextForestName + ".csv");
+                }
+            }
+        }
+
         if (!found) {
             System.out.println("No more forests to move to.");
         }
     }
+
 } // End of ForestSimulation class
